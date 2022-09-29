@@ -2,12 +2,8 @@
 
 URL="https://leagueoflegends.fandom.com"
 
-curl --silent "${URL}/wiki/List_of_champions" |
-	htmlq --attribute href 'table.article-table tbody tr td:first-child div a' |
-	cut -d'/' -f3 >champion_list
-
-out="["
-while read -r champ; do
+fetchChamp() {
+  champ="$@"
 	echo "$champ" | grep -q '^Nunu' && champ="Nunu"
 
 	champLolPage="$(curl --silent "${URL}/wiki/${champ}/LoL")"
@@ -51,10 +47,24 @@ while read -r champ; do
 	\"regions\": $(echo $regions | awk '{printf "["; for (i=1; i<NF; i++) printf "\"%s\", ", $i; printf "\"%s\"]", $NF}'),
 	\"gender\": \"$gender\"
 },"
-	out="${out}
-${champJson}"
-done <"champion_list"
+	echo "$champJson"
+}
 
-out="${out}
-]"
-echo "$out"
+if [ $# -gt 0 ]; then
+	fetchChamp "$@"
+else
+	curl --silent "${URL}/wiki/List_of_champions" |
+		htmlq --attribute href 'table.article-table tbody tr td:first-child div a' |
+		cut -d'/' -f3 >champion_list
+
+	out="["
+	while read -r champ; do
+		champJson="$(fetchChamp "$champ")"
+		out="${out}
+${champJson}"
+	done <"champion_list"
+	out="${out}
+  ]"
+
+	echo "$out"
+fi
