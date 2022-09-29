@@ -10,8 +10,16 @@ function App() {
     )
   })
 
+  const onKeyDown = e => {
+    if (e.keyCode === 13) {
+      // do stuff
+      alert("you have pressed enter");
+    }
+  };
+
   return (
-    <Select options={champNames}/>
+    <Select options={champNames}
+    onKeyDown={onKeyDown}/>
   );
 }
 
